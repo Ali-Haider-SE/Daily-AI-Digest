@@ -1,0 +1,29 @@
+# Environment and Secrets
+.env
+.env*.local
+*.env
+
+# Python Virtual Environments & Bytecode
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Databases and Generated Digest Artifacts
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+data/*.html
+preview/
+*.log
+
+# IDE & OS Metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+data/
+*.db*

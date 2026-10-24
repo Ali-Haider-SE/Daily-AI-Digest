@@ -1,0 +1,107 @@
+name: Daily Intelligence Digest
+
+on:
+  schedule:
+    # 00:00 UTC = 05:00 AM Pakistan Standard Time (PKT)
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run in dry-run mode (do not send email)"
+        required: false
+        default: "false"
+        type: boolean
+      force_send:
+        description: "Force send even if items were already recorded"
+        required: false
+        default: "false"
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  digest:
+    name: Generate and Deliver Daily Intelligence Digest
+    runs-on: ubuntu-latest
+    env:
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_APP_PASSWORD: ${{ secrets.SMTP_APP_PASSWORD }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      GROQ_API_KEY_2: ${{ secrets.GROQ_API_KEY_2 }}
+      GROQ_API_KEY_3: ${{ secrets.GROQ_API_KEY_3 }}
+      GROQ_API_KEY_4: ${{ secrets.GROQ_API_KEY_4 }}
+      GROQ_MODEL: ${{ secrets.GROQ_MODEL || 'qwen/qwen3.8-27b' }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: ${{ secrets.GEMINI_MODEL || 'gemini-2.5-flash' }}
+      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+      MISTRAL_MODEL: ${{ secrets.MISTRAL_MODEL || 'mistral-small-latest' }}
+      AI_PROVIDER_PRIORITY: groq,gemini,mistral
+      AI_AUTO_FAILOVER: "true"
+      NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+      DATABASE_PATH: data/digest.db
+      WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'https://github.com' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run verification tests
+        run: |
+          python validate_project.py
+          pytest -v
+
+      # Persistent Cache Strategy:
+      # Step 1: Restore SQLite database from cache using rolling key prefix
+      - name: Restore SQLite Database Cache
+        id: db-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: data/digest.db
+          key: digest-sqlite-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            digest-sqlite-${{ runner.os }}-
+
+      - name: Execute Daily Intelligence Pipeline
+        run: |
+          FLAGS=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            FLAGS="$FLAGS --dry-run"
+          fi
+          if [ "${{ github.event.inputs.force_send }}" = "true" ]; then
+            FLAGS="$FLAGS --force-send"
+          fi
+          python -m app.main $FLAGS
+
+      # Step 2: Save updated SQLite database to cache with unique run_id key
+      - name: Save Updated SQLite Database Cache
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: data/digest.db
+          key: digest-sqlite-${{ runner.os }}-${{ github.run_id }}
+
+      # Step 3: Backup database and generated digest as downloadable GitHub artifacts
+      - name: Upload Digest Artifacts & Database Backup
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intelligence-digest-artifacts-${{ github.run_number }}
+          path: |
+            data/digest.db
+            data/latest_digest.html
+          if-no-files-found: ignore
+          retention-days: 30

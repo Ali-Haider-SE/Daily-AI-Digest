@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Intelligence Digest — {{ date_full }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/dashboard.css" />
+</head>
+<body>
+  <!-- Top Accessibility Bar / Skip link -->
+  <a href="#main-content" class="skip-link">Skip to main intelligence content</a>
+
+  <!-- Header Navigation -->
+  <header class="header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="logo-mark">ID</div>
+        <div>
+          <h1 class="brand-title">Daily Intelligence Digest</h1>
+          <p class="brand-subtitle">
+            {{ date_full }} &bull; <span class="badge-time">PKT: {{ time_pkt }}</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sticky Navigation Bar -->
+  <nav class="subnav" aria-label="Category navigation">
+    <div class="subnav-container">
+      <ul class="nav-links">
+        <li><a href="#top-5" class="nav-link active">🔥 Top 5</a></li>
+        <li><a href="#sec-Pakistan" class="nav-link">🇵🇰 Pakistan</a></li>
+        <li><a href="#sec-Scholarships" class="nav-link">🎓 Scholarships</a></li>
+        <li><a href="#sec-Global" class="nav-link">🌎 Global</a></li>
+        <li><a href="#sec-Wars" class="nav-link">⚔️ Wars &amp; Geopolitics</a></li>
+        <li><a href="#sec-Finance" class="nav-link">💰 Finance</a></li>
+        <li><a href="#sec-Trade" class="nav-link">🚢 Trade</a></li>
+        <li><a href="#sec-Tech" class="nav-link">🤖 Tech / AI</a></li>
+        <li><a href="#sec-Science" class="nav-link">🔬 Science</a></li>
+        <li><a href="#sec-Jobs" class="nav-link">💼 Jobs</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main id="main-content" class="main-layout">
+
+    <!-- Filter & Search Toolbar -->
+    <section class="toolbar-card" aria-label="Filters and Search">
+      <div class="search-box">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search stories, companies, keywords, technologies..."
+          aria-label="Search digest items"
+        />
+        <button id="search-clear" type="button" aria-label="Clear search" class="btn-clear hidden">&times;</button>
+      </div>
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label for="cred-filter">Credibility:</label>
+          <select id="cred-filter">
+            <option value="all">All Levels</option>
+            <option value="High confidence">High Confidence</option>
+            <option value="Medium confidence">Medium Confidence</option>
+            <option value="Developing">Developing Story</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="remote-filter">Jobs Filter:</label>
+          <select id="remote-filter">
+            <option value="all">All Tech Jobs</option>
+            <option value="remote">Remote Only</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- TOP 5 DEVELOPMENTS -->
+    <section id="top-5" class="content-section" data-section="top">
+      <div class="section-header">
+        <h2 class="section-title">🔥 Today's 5 Most Important Developments</h2>
+        <span class="section-badge">{{ top_stories|length }} Key Briefs</span>
+      </div>
+
+      <div class="cards-grid">
+        {% for x in top_stories %}
+        <article
+          class="intel-card highlight-card {{ 'developing-border' if x.is_developing else '' }}"
+          data-hash="{{ x.content_hash }}"
+          data-credibility="{{ x.credibility_label }}"
+          data-title="{{ x.title|lower }}"
+          data-source="{{ x.source|lower }}"
+        >
+          <div class="card-meta">
+            <span class="source-tag">{{ x.source }}</span>
+            <span class="badge {% if x.credibility_label == 'High confidence' %}badge-high{% elif x.credibility_label == 'Medium confidence' %}badge-med{% else %}badge-dev{% endif %}">
+              {{ x.credibility_label }}
+            </span>
+            {% if x.is_developing %}
+            <span class="badge badge-devtag">⚠️ Developing Story</span>
+            {% endif %}
+            {% if x.corroboration_count > 1 %}
+            <span class="corroboration-tag">&bull; {{ x.corroboration_count }} sources</span>
+            {% endif %}
+          </div>
+
+          <h3 class="card-headline">{{ x.title }}</h3>
+
+          <div class="card-body">
+            <p class="summary-text">{{ x.summary }}</p>
+
+            {% if x.why_it_matters %}
+            <div class="why-callout">
+              <strong>Why it matters:</strong> {{ x.why_it_matters }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="card-actions">
+            <a href="{{ x.url }}" target="_blank" rel="noopener noreferrer" class="btn-action primary">
+              Read original &rarr;
+            </a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- CATEGORIZED SECTIONS -->
+    {% set cat_ids = {
+      "Pakistan": "sec-Pakistan",
+      "Scholarships & Schemes": "sec-Scholarships",
+      "Global": "sec-Global",
+      "Wars & Geopolitics": "sec-Wars",
+      "Finance & Economy": "sec-Finance",
+      "Trade": "sec-Trade",
+      "Technology / AI": "sec-Tech",
+      "Science & Inventions": "sec-Science"
+    } %}
+
+    {% for c in categories %}
+    <section id="{{ cat_ids.get(c, 'sec-' ~ loop.index) }}" class="content-section" data-section="{{ c|lower }}">
+      <div class="section-header">
+        <h2 class="section-title">
+          {% if c == "Pakistan" %}🇵🇰 Pakistan
+          {% elif c == "Scholarships & Schemes" %}🎓 Scholarships &amp; Schemes
+          {% elif c == "Global" %}🌎 Global
+          {% elif c == "Wars & Geopolitics" %}⚔️ Wars &amp; Geopolitics
+          {% elif c == "Finance & Economy" %}💰 Finance &amp; Economy
+          {% elif c == "Trade" %}🚢 Trade
+          {% elif c == "Technology / AI" %}🤖 Technology / AI
+          {% elif c == "Science & Inventions" %}🔬 Science &amp; Inventions
+          {% endif %}
+        </h2>
+        <span class="section-count">{{ news.get(c, [])|length }} reports</span>
+      </div>
+
+      <div class="cards-grid">
+        {% for x in news.get(c, []) %}
+        <article
+          class="intel-card {{ 'developing-border' if x.is_developing else '' }}"
+          data-hash="{{ x.content_hash }}"
+          data-credibility="{{ x.credibility_label }}"
+          data-title="{{ x.title|lower }}"
+          data-source="{{ x.source|lower }}"
+        >
+          <div class="card-meta">
+            <span class="source-tag">{{ x.source }}</span>
+            <span class="badge {% if x.credibility_label == 'High confidence' %}badge-high{% elif x.credibility_label == 'Medium confidence' %}badge-med{% else %}badge-dev{% endif %}">
+              {{ x.credibility_label }}
+            </span>
+            {% if x.is_developing %}
+            <span class="badge badge-devtag">⚠️ Developing</span>
+            {% endif %}
+            {% if x.corroboration_count > 1 %}
+            <span class="corroboration-tag">&bull; {{ x.corroboration_count }} sources</span>
+            {% endif %}
+          </div>
+
+          <h3 class="card-headline">{{ x.title }}</h3>
+
+          <div class="card-body">
+            <p class="summary-text">{{ x.summary }}</p>
+
+            {% if x.why_it_matters %}
+            <div class="why-callout">
+              <strong>Why it matters:</strong> {{ x.why_it_matters }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="card-actions">
+            <a href="{{ x.url }}" target="_blank" rel="noopener noreferrer" class="btn-action primary">
+              Read original &rarr;
+            </a>
+          </div>
+        </article>
+        {% else %}
+        <div class="empty-state">
+          <p>No major verified stories found in this section today.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+
+    <!-- JOBS & INTERNSHIPS -->
+    <section id="sec-Jobs" class="content-section" data-section="jobs">
+      <div class="section-header">
+        <h2 class="section-title">💼 Jobs &amp; Internships (CS / SE / IT)</h2>
+        <span class="section-count">{{ jobs|length }} opportunities</span>
+      </div>
+
+      <div class="cards-grid">
+        {% for j in jobs %}
+        <article
+          class="intel-card job-card"
+          data-hash="{{ j.content_hash }}"
+          data-remote="{{ 'remote' if j.remote else 'onsite' }}"
+          data-title="{{ j.title|lower }}"
+          data-company="{{ j.company|lower }}"
+        >
+          <div class="card-meta">
+            <span class="company-tag">{{ j.company }}</span>
+            {% if j.remote %}
+            <span class="badge badge-remote">🌐 Remote</span>
+            {% endif %}
+            <span class="badge badge-match">{{ j.match_label }}</span>
+            <span class="source-tag">{{ j.source }}</span>
+          </div>
+
+          <h3 class="card-headline">{{ j.title }}</h3>
+
+          <div class="job-attributes">
+            <div class="attr-item">📍 {{ j.location or 'Pakistan / Worldwide' }}</div>
+            <div class="attr-item">🎓 {{ j.experience_level or 'Internship / Fresh Grad' }}</div>
+          </div>
+
+          {% if j.description %}
+          <div class="job-snippet">
+            {{ j.description[:280] }}...
+          </div>
+          {% endif %}
+
+          <div class="card-actions">
+            <a href="{{ j.url }}" target="_blank" rel="noopener noreferrer" class="btn-action primary-green">
+              Apply / View Job &rarr;
+            </a>
+          </div>
+        </article>
+        {% else %}
+        <div class="empty-state">
+          <p>No high-confidence matching internships were found today.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Empty state search notification -->
+    <div id="search-none-found" class="empty-state hidden">
+      <h3>No matching results found</h3>
+      <p>Try adjusting your search terms or filters.</p>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <p><strong>Daily Intelligence Digest</strong> &bull; Executive Briefing System</p>
+      <p>Automated multi-source aggregation, algorithmic verification, and AI-augmented decision support.</p>
+      <p class="copyright">&copy; Daily Intelligence Digest. Built with Python &amp; HCI principles.</p>
+    </div>
+  </footer>
+
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

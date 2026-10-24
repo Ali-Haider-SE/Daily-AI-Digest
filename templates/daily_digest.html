@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Intelligence Digest — {{ date_full }}</title>
+  <style type="text/css">
+    /* ─── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0f1e;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      padding: 20px 10px 40px;
+    }
+    a { color: #0369a1; text-decoration: none; }
+    a:hover { text-decoration: underline; color: #0284c7; }
+
+    /* ─── Outer Container ───────────────────────────────────────────── */
+    .digest {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    }
+
+    /* ─── Header ────────────────────────────────────────────────────── */
+    .digest-header {
+      background: linear-gradient(140deg, #050c1c 0%, #0f1f40 60%, #0e2b5c 100%);
+      padding: 36px 36px 28px;
+      border-bottom: 3px solid #1d4ed8;
+      color: #ffffff;
+      position: relative;
+    }
+    .header-eyebrow {
+      display: inline-block;
+      background: rgba(29,78,216,0.25);
+      border: 1px solid rgba(99,179,237,0.3);
+      color: #93c5fd;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 100px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .header-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .header-subtitle {
+      color: #94a3b8;
+      font-size: 13.5px;
+      margin-bottom: 20px;
+    }
+    .header-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .header-chip {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #cbd5e1;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 100px;
+    }
+
+    /* ─── Offline Notice ─────────────────────────────────────────────── */
+    .offline-notice {
+      background: #f0fdf4;
+      border-bottom: 1px solid #bbf7d0;
+      padding: 10px 36px;
+      font-size: 12.5px;
+      color: #166534;
+    }
+
+    /* ─── Section Wrapper ─────────────────────────────────────────────── */
+    .digest-section {
+      padding: 32px 36px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .digest-section:last-of-type { border-bottom: none; }
+
+    .section-hd {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 22px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .section-hd-left h2 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.3px;
+    }
+    .section-hd-left p {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .section-count {
+      background: #1d4ed8;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 100px;
+      white-space: nowrap;
+      align-self: center;
+    }
+
+    /* ─── Jobs Table ──────────────────────────────────────────────────── */
+    .jobs-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+    }
+    .jobs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 900px;
+    }
+    .jobs-table thead {
+      background: #0f172a;
+      color: #ffffff;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .jobs-table thead th {
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: #94a3b8;
+    }
+    .jobs-table thead th:first-child {
+      border-radius: 10px 0 0 0;
+      position: sticky;
+      left: 0;
+      z-index: 5;
+      background: #0f172a;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.25);
+    }
+    .jobs-table thead th:last-child  { border-radius: 0 10px 0 0; }
+
+    .jobs-table tbody tr {
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.1s;
+    }
+    .jobs-table tbody tr:last-child { border-bottom: none; }
+    .jobs-table tbody tr:hover { background: #f8fafc; }
+    .jobs-table tbody tr:nth-child(even) { background: #fafbfc; }
+    .jobs-table tbody tr:nth-child(even):hover { background: #f1f5f9; }
+
+    .jobs-table td.td-serial {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      background: #ffffff;
+      color: #1e293b;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.06);
+      width: 48px;
+      min-width: 48px;
+      max-width: 48px;
+    }
+    .jobs-table tbody tr:nth-child(even) td.td-serial {
+      background: #fafbfc;
+    }
+    .jobs-table tbody tr:hover td.td-serial,
+    .jobs-table tbody tr:nth-child(even):hover td.td-serial {
+      background: #f1f5f9;
+    }
+
+    .jobs-table td {
+      padding: 12px 14px;
+      vertical-align: top;
+      color: #334155;
+    }
+    .td-title {
+      font-weight: 700;
+      color: #0f172a;
+      min-width: 160px;
+    }
+    .td-company {
+      color: #475569;
+      font-weight: 600;
+      min-width: 120px;
+    }
+    .td-location { min-width: 110px; }
+    .td-salary { min-width: 120px; white-space: nowrap; }
+    .td-responsibilities { min-width: 200px; max-width: 280px; line-height: 1.5; }
+    .td-skills { min-width: 140px; }
+    .td-apply { min-width: 80px; }
+
+    /* Inline badges inside table */
+    .pill {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 100px;
+      white-space: nowrap;
+    }
+    .pill-remote   { background: #dbeafe; color: #1e40af; }
+    .pill-hybrid   { background: #fef3c7; color: #92400e; }
+    .pill-onsite   { background: #f1f5f9; color: #475569; }
+    .pill-intern   { background: #dcfce7; color: #166534; }
+    .pill-junior   { background: #ede9fe; color: #5b21b6; }
+    .pill-entry    { background: #fff7ed; color: #9a3412; }
+    .pill-strong   { background: #dcfce7; color: #166534; }
+    .pill-possible { background: #fff7ed; color: #9a3412; }
+
+    .apply-btn {
+      display: inline-block;
+      background: #1d4ed8;
+      color: #ffffff !important;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 6px;
+      white-space: nowrap;
+      text-decoration: none !important;
+      transition: background 0.15s;
+    }
+    .apply-btn:hover { background: #1e40af; text-decoration: none !important; }
+
+    .salary-val { color: #15803d; font-weight: 600; }
+    .salary-na  { color: #94a3b8; font-style: italic; font-size: 12px; }
+
+    .skills-list { color: #475569; font-size: 12px; line-height: 1.6; }
+    .source-chip {
+      display: inline-block;
+      font-size: 10px;
+      background: #f1f5f9;
+      color: #64748b;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    /* ─── Pakistan News ────────────────────────────────────────────── */
+    .article-card {
+      padding: 20px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .article-card:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .card-index {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      line-height: 24px;
+      text-align: center;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 50%;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    .card-title-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.4;
+      flex: 1;
+    }
+    .card-title a { color: #0f172a; }
+    .card-title a:hover { color: #1d4ed8; }
+    .card-meta {
+      font-size: 12px;
+      color: #64748b;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .card-summary {
+      font-size: 14px;
+      line-height: 1.65;
+      color: #334155;
+      margin-bottom: 10px;
+    }
+    .why-box {
+      background: #f8fafc;
+      border-left: 3px solid #1d4ed8;
+      border-radius: 0 6px 6px 0;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #1e293b;
+      line-height: 1.55;
+      margin-bottom: 12px;
+    }
+    .card-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .btn-read {
+      font-size: 13px;
+      color: #0369a1;
+      font-weight: 600;
+    }
+
+    /* ─── Verification Badges ──────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+    }
+    .badge-authentic   { background: #dcfce7; color: #166534; }
+    .badge-pending     { background: #fef9c3; color: #854d0e; }
+    .badge-conflicting { background: #fee2e2; color: #991b1b; }
+    .badge-developing  { background: #ffedd5; color: #9a3412; font-weight: 800; }
+
+    /* ─── Footer ─────────────────────────────────────────────────────── */
+    .digest-footer {
+      background: #080d1c;
+      padding: 28px 36px;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.7;
+      text-align: center;
+    }
+    .digest-footer strong { color: #94a3b8; }
+    .footer-disclaimer {
+      margin-top: 10px;
+      font-size: 11px;
+      color: #475569;
+    }
+
+    /* ─── Empty States ───────────────────────────────────────────────── */
+    .empty-state {
+      padding: 20px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 13px;
+      font-style: italic;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px dashed #e2e8f0;
+    }
+
+    /* ─── Responsive ─────────────────────────────────────────────────── */
+    @media only screen and (max-width: 640px) {
+      body { padding: 8px 4px 30px; }
+      .digest { border-radius: 10px; }
+      .digest-header { padding: 24px 20px 20px; }
+      .header-title { font-size: 22px; }
+      .digest-section { padding: 24px 18px; }
+      .offline-notice { padding: 10px 18px; }
+      .digest-footer { padding: 22px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="digest">
+
+    <!-- ════════════════════════════════════════════ HEADER -->
+    <header class="digest-header">
+      <span class="header-eyebrow">Executive Intelligence Briefing</span>
+      <h1 class="header-title">📰 Daily Intelligence Digest</h1>
+      <p class="header-subtitle">Curated jobs, verified Pakistan news &amp; scholarships — delivered daily</p>
+      <div class="header-meta-row">
+        <span class="header-chip">📅 {{ date_full }}</span>
+        <span class="header-chip">🕐 Generated {{ time_pkt }}</span>
+        <span class="header-chip">💼 {{ jobs|length }} job{% if jobs|length != 1 %}s{% endif %} found</span>
+        <span class="header-chip">🇵🇰 {{ news.get("Pakistan", [])|length }} Pakistan stories</span>
+        <span class="header-chip">🎓 {{ news.get("Scholarships & Schemes", [])|length }} scholarships &amp; schemes</span>
+      </div>
+    </header>
+
+    <!-- ════════════════════════════════════════════ OFFLINE NOTICE -->
+    <div class="offline-notice">
+      ⚡ <strong>Standalone offline document:</strong> Self-contained intelligence report. No internet connection needed to view.
+    </div>
+
+    <!-- ════════════════════════════════════════════ SECTION A: JOBS -->
+    <section class="digest-section" id="section-jobs">
+      <div class="section-hd">
+        <div class="section-hd-left">
+          <h2>💼 Jobs &amp; Internships (CS / SE / IT)</h2>
+          <p>Targeted at university students, interns, and fresh graduates — Pakistan, remote, and international opportunities</p>
+        </div>
+        <span class="section-count">{{ jobs|length }} opportunit{% if jobs|length == 1 %}y{% else %}ies{% endif %} found</span>
+      </div>
+
+      {% if jobs %}
+      <div class="jobs-table-wrap">
+        <table class="jobs-table" aria-label="Jobs and Internships">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Job Title</th>
+              <th>Company</th>
+              <th>Type</th>
+              <th>Salary / Pay</th>
+              <th>Location</th>
+              <th>Mode</th>
+              <th>Experience</th>
+              <th>What You'll Do</th>
+              <th>Key Skills</th>
+              <th>Posted</th>
+              <th>Deadline</th>
+              <th>Source</th>
+              <th>Apply</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for j in jobs %}
+            <tr data-card-id="job-{{ loop.index }}">
+              <td class="td-serial">{{ loop.index }}</td>
+
+              <td class="td-title">
+                {{ j.title }}
+              </td>
+
+              <td class="td-company">{{ j.company }}</td>
+
+              <td>
+                {% set jt = (j.employment_type or j.job_type or "Full-time").strip() %}
+                {% if "intern" in jt.lower() %}
+                  <span class="pill pill-intern">{{ jt }}</span>
+                {% elif "junior" in jt.lower() %}
+                  <span class="pill pill-junior">{{ jt }}</span>
+                {% else %}
+                  <span class="pill pill-entry">{{ jt }}</span>
+                {% endif %}
+              </td>
+
+              <td class="td-salary">
+                {% if j.salary and j.salary not in ("Not disclosed", "", "Not specified") %}
+                  <span class="salary-val">{{ j.salary }}</span>
+                {% else %}
+                  <span class="salary-na">Not disclosed</span>
+                {% endif %}
+              </td>
+
+              <td class="td-location">{{ j.location or "Not specified" }}</td>
+
+              <td>
+                {% set wm = j.work_mode or "" %}
+                {% if "remote" in wm.lower() %}
+                  <span class="pill pill-remote">🌐 Remote</span>
+                {% elif "hybrid" in wm.lower() %}
+                  <span class="pill pill-hybrid">⚡ Hybrid</span>
+                {% else %}
+                  <span class="pill pill-onsite">🏢 On-site</span>
+                {% endif %}
+              </td>
+
+              <td>
+                <span style="font-size:12px;">{{ j.experience_level or j.experience or "Entry Level" }}</span>
+              </td>
+
+              <td class="td-responsibilities">
+                {% if j.responsibilities %}
+                  <span style="font-size:12.5px;">{{ j.responsibilities }}</span>
+                {% else %}
+                  <span style="font-size:12px;color:#64748b;">
+                    {{ j.description[:200] if j.description else "See job listing." }}{% if j.description and j.description|length > 200 %}…{% endif %}
+                  </span>
+                {% endif %}
+              </td>
+
+              <td class="td-skills">
+                {% if j.key_skills %}
+                  <span class="skills-list">{{ j.key_skills }}</span>
+                {% elif j.skills %}
+                  <span class="skills-list">{{ j.skills[:6]|join(", ") }}</span>
+                {% else %}
+                  <span class="salary-na">Not specified</span>
+                {% endif %}
+              </td>
+
+              <td style="font-size:12px;white-space:nowrap;color:#64748b;">
+                {% if j.published_at %}
+                  {{ j.published_at.strftime("%d %b %Y") }}
+                {% else %}
+                  <span style="color:#94a3b8;font-style:italic;">N/A</span>
+                {% endif %}
+              </td>
+
+              <td style="font-size:12px;white-space:nowrap;">
+                {% if j.deadline %}
+                  {{ j.deadline }}
+                {% else %}
+                  <span class="salary-na">Not specified</span>
+                {% endif %}
+              </td>
+
+              <td>
+                <span class="source-chip">{{ j.source }}</span>
+              </td>
+
+              <td class="td-apply">
+                <a href="{{ j.url }}" target="_blank" rel="noopener noreferrer" class="apply-btn">Apply →</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        No qualifying computing internships or junior roles were confirmed today. Sources are checked daily.
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- ════════════════════════════════════════════ SECTION B: PAKISTAN NEWS -->
+    <section class="digest-section" id="section-pakistan" style="background:#fafbfc;">
+      <div class="section-hd">
+        <div class="section-hd-left">
+          <h2>🇵🇰 Pakistan News</h2>
+          <p>Top verified national reporting — strategic, political, and economic developments</p>
+        </div>
+        <span class="section-count">{{ news.get("Pakistan", [])|length }} stories</span>
+      </div>
+
+      {% for x in news.get("Pakistan", []) %}
+      <article class="article-card" data-card-id="pak-{{ loop.index }}">
+
+        {% if x.is_developing %}
+        <div style="margin-bottom:6px;">
+          <span class="badge badge-developing">⚠️ DEVELOPING STORY</span>
+        </div>
+        {% endif %}
+
+        <div class="card-title-row">
+          <span class="card-index">{{ loop.index }}</span>
+          <h3 class="card-title">
+            <a href="{{ x.url }}" target="_blank" rel="noopener noreferrer">{{ x.title }}</a>
+          </h3>
+        </div>
+
+        <div class="card-meta">
+          <strong>{{ x.source }}</strong>
+          {% set lbl = x.credibility_label %}
+          {% if lbl == "Authentic News" %}
+            <span class="badge badge-authentic">✓ Authentic News</span>
+          {% elif lbl == "Conflicting Reports" %}
+            <span class="badge badge-conflicting">⚡ Conflicting Reports</span>
+          {% else %}
+            <span class="badge badge-pending">⏳ Verification Pending</span>
+          {% endif %}
+          {% if x.corroboration_count > 1 %}
+            <span style="color:#0369a1;font-weight:600;font-size:12px;">{{ x.corroboration_count }} sources corroborate</span>
+          {% endif %}
+          {% if x.published_at %}
+            <span style="color:#94a3b8;font-size:11px;">{{ x.published_at.strftime("%d %b %Y") }}</span>
+          {% endif %}
+        </div>
+
+        <p class="card-summary">{{ x.summary }}</p>
+
+        {% if x.why_it_matters %}
+        <div class="why-box">
+          <strong style="color:#0369a1;">Why it matters:</strong> {{ x.why_it_matters }}
+        </div>
+        {% endif %}
+
+        <div class="card-actions">
+          <a href="{{ x.url }}" target="_blank" rel="noopener noreferrer" class="btn-read">Read original →</a>
+        </div>
+      </article>
+      {% else %}
+      <div class="empty-state">No major Pakistan developments were confirmed today.</div>
+      {% endfor %}
+    </section>
+
+    <!-- ════════════════════════════════════════════ SECTION C: SCHOLARSHIPS & SCHEMES -->
+    <section class="digest-section" id="section-scholarships">
+      <div class="section-hd">
+        <div class="section-hd-left">
+          <h2>🎓 Pakistan Scholarships &amp; Government Schemes</h2>
+          <p>HEC, PM Youth Programme, NAVTTC and other official opportunities — always confirm on the official site</p>
+        </div>
+        <span class="section-count">{{ news.get("Scholarships & Schemes", [])|length }} items</span>
+      </div>
+
+      {% for x in news.get("Scholarships & Schemes", []) %}
+      <article class="article-card" data-card-id="sch-{{ loop.index }}">
+        <div class="card-title-row">
+          <span class="card-index">{{ loop.index }}</span>
+          <h3 class="card-title">
+            <a href="{{ x.url }}" target="_blank" rel="noopener noreferrer">{{ x.title }}</a>
+          </h3>
+        </div>
+        <div class="card-meta">
+          <strong>{{ x.source }}</strong>
+          {% if "Official" in x.source %}
+            <span class="badge badge-authentic">✓ Official source</span>
+          {% else %}
+            <span class="badge badge-pending">📰 News report — verify on official site</span>
+          {% endif %}
+          {% if x.published_at %}
+            <span style="color:#94a3b8;font-size:11px;">{{ x.published_at.strftime("%d %b %Y") }}</span>
+          {% endif %}
+        </div>
+        <p class="card-summary">{{ x.summary }}</p>
+        {% if x.why_it_matters %}
+        <div class="why-box"><strong style="color:#0369a1;">Why it matters:</strong> {{ x.why_it_matters }}</div>
+        {% endif %}
+        <div class="card-actions">
+          <a href="{{ x.url }}" target="_blank" rel="noopener noreferrer" class="btn-read">Open →</a>
+        </div>
+      </article>
+      {% else %}
+      <div class="empty-state">No scholarship updates found today.</div>
+      {% endfor %}
+    </section>
+
+    <!-- ════════════════════════════════════════════ FOOTER -->
+    <footer class="digest-footer">
+      <strong>Daily Intelligence Digest</strong> — Automated Decision-Support System<br/>
+      Generated {{ time_pkt }} on {{ date_full }}<br/>
+      <div class="footer-disclaimer">
+        Sources: RSS feeds, Remotive, RemoteOK, Himalayas, We Work Remotely, Arbeitnow, Rozee.pk, HEC, PMYP, NAVTTC, Google News · AI summaries via Groq ·
+        Verification labels reflect source-credibility checks performed by this application — not an absolute guarantee of factual accuracy.
+        Always verify important information with primary sources.
+      </div>
+    </footer>
+
+  </div><!-- /.digest -->
+
+
+
+</body>
+</html>
