@@ -104,7 +104,9 @@ def send_email(
 </body>
 </html>"""
 
-    message.add_alternative(body_html, subtype="html")
+        # Use the full digest as the email body; fall back to the notice card if empty
+    email_body = html if html and html.strip() else body_html
+    message.add_alternative(email_body, subtype="html")
 
     # 3. Add standalone HTML file attachment
     message.add_attachment(
