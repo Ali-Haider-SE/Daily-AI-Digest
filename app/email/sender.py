@@ -49,7 +49,9 @@ def send_email(
     message = EmailMessage()
     message["From"] = email_from
     message["To"] = ", ".join(recipients)
-    message["Subject"] = f"Daily Intelligence Digest — {date_string}"
+    from datetime import datetime, timezone, timedelta
+    _now_pkt = datetime.now(timezone(timedelta(hours=5)))
+    message["Subject"] = f"Daily Intelligence Digest — {date_string} ({_now_pkt.strftime('%I:%M %p')} PKT)"
 
     # 1. Plain text fallback
     message.set_content(
