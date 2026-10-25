@@ -99,6 +99,14 @@ def run(dry_run: bool = False, force_send: bool = False):
     portal_items = official_portal_items()
     print(f"[INFO] Scholarships: {len(display_schol)} fresh items + {len(portal_items)} official portals.")
 
+    # AI & Tech launches / new articles (only items not sent before)
+    from app.tech.collector import collect_tech_launches
+    print("[INFO] Collecting AI / software / IT launches and articles...")
+    fresh_tech = collect_tech_launches(settings.request_timeout)
+    new_tech = [x for x in fresh_tech if not db.already_sent(x.content_hash)]
+    display_tech = fresh_tech if (dry_run or force_send) else new_tech
+    print(f"[INFO] Tech launches: {len(display_tech)} items.")
+
     # 6. AI Summarization & Contextual Analysis (Multi-Provider Failover)
     from app.ai.provider_manager import get_provider_manager
     ai_mgr = get_provider_manager(
@@ -112,9 +120,9 @@ def run(dry_run: bool = False, force_send: bool = False):
     )
 
     print(f"[INFO] Running AI summarization on {len(display_news)} intelligence items (provider priority: {', '.join(ai_mgr.priority)})...")
-    summarize_news(display_news + display_schol, model=settings.groq_model, provider_manager=ai_mgr)
+    summarize_news(display_news + display_schol + display_tech, model=settings.groq_model, provider_manager=ai_mgr)
     # Attach scholarships (after AI, so portals keep their fixed text)
-    display_news = display_news + display_schol + portal_items
+    display_news = display_news + display_schol + display_tech + portal_items
     summarize_jobs(display_jobs, model=settings.groq_model, provider_manager=ai_mgr)
 
     # Group news for storage
@@ -162,7 +170,7 @@ def run(dry_run: bool = False, force_send: bool = False):
         print(f"[SUCCESS] Dry run complete! Digest rendered to: {out}")
         return
 
-    if not new_news and not new_jobs and not new_schol and not force_send:
+    if not new_news and not new_jobs and not new_schol and not new_tech and not force_send:
         db.close()
         print("[INFO] No new qualifying intelligence stories or jobs found since last run. Skipping email dispatch.")
         return
@@ -189,6 +197,8 @@ def run(dry_run: bool = False, force_send: bool = False):
             db.mark_sent(j.content_hash, "job", j.title, j.url)
         for x in new_schol:
             db.mark_sent(x.content_hash, "scholarship", x.title, x.url)
+        for x in new_tech:
+            db.mark_sent(x.content_hash, "tech", x.title, x.url)
     except Exception as exc:
         print(f"[ERROR] Email delivery failed: {exc}")
     finally:

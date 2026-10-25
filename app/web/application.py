@@ -24,6 +24,7 @@ logger = logging.getLogger("digest_web")
 CATEGORIES = [
     "Pakistan",
     "Scholarships & Schemes",
+    "AI & Tech Launches",
     "Global",
     "Wars & Geopolitics",
     "Finance & Economy",

@@ -104,7 +104,7 @@ def send_email(
 </body>
 </html>"""
 
-        # Use the full digest as the email body; fall back to the notice card if empty
+    # Use the full digest as the email body; fall back to the notice card if empty
     email_body = html if html and html.strip() else body_html
     message.add_alternative(email_body, subtype="html")
 

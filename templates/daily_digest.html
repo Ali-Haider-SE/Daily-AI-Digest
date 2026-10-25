@@ -404,6 +404,7 @@
         <span class="header-chip">💼 {{ jobs|length }} job{% if jobs|length != 1 %}s{% endif %} found</span>
         <span class="header-chip">🇵🇰 {{ news.get("Pakistan", [])|length }} Pakistan stories</span>
         <span class="header-chip">🎓 {{ news.get("Scholarships & Schemes", [])|length }} scholarships &amp; schemes</span>
+        <span class="header-chip">🚀 {{ news.get("AI & Tech Launches", [])|length }} tech launches</span>
       </div>
     </header>
 
@@ -645,6 +646,43 @@
       </article>
       {% else %}
       <div class="empty-state">No scholarship updates found today.</div>
+      {% endfor %}
+    </section>
+
+    <!-- ════════════════════════════════════════════ SECTION D: AI & TECH LAUNCHES -->
+    <section class="digest-section" id="section-tech" style="background:#fafbfc;">
+      <div class="section-hd">
+        <div class="section-hd-left">
+          <h2>🚀 AI &amp; Tech Launches</h2>
+          <p>New AI, software and IT launches and articles from the last few days</p>
+        </div>
+        <span class="section-count">{{ news.get("AI & Tech Launches", [])|length }} items</span>
+      </div>
+
+      {% for x in news.get("AI & Tech Launches", []) %}
+      <article class="article-card" data-card-id="tech-{{ loop.index }}">
+        <div class="card-title-row">
+          <span class="card-index">{{ loop.index }}</span>
+          <h3 class="card-title">
+            <a href="{{ x.url }}" target="_blank" rel="noopener noreferrer">{{ x.title }}</a>
+          </h3>
+        </div>
+        <div class="card-meta">
+          <strong>{{ x.source }}</strong>
+          {% if x.published_at %}
+            <span style="color:#94a3b8;font-size:11px;">{{ x.published_at.strftime("%d %b %Y") }}</span>
+          {% endif %}
+        </div>
+        <p class="card-summary">{{ x.summary }}</p>
+        {% if x.why_it_matters %}
+        <div class="why-box"><strong style="color:#0369a1;">Why it matters:</strong> {{ x.why_it_matters }}</div>
+        {% endif %}
+        <div class="card-actions">
+          <a href="{{ x.url }}" target="_blank" rel="noopener noreferrer" class="btn-read">Read original →</a>
+        </div>
+      </article>
+      {% else %}
+      <div class="empty-state">No new AI or tech launches today.</div>
       {% endfor %}
     </section>
 
